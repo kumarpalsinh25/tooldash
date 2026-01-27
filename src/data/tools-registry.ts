@@ -44,6 +44,12 @@ export const tools: Tool[] = [
         description: "Generate placeholder text for your designs.",
         categories: ["text"],
     },
+    {
+        id: "pdf-splitter",
+        name: "PDF Splitter",
+        description: "Split a PDF file into multiple files based on page ranges.",
+        categories: ["conversion"],
+    },
 ];
 
 export function getToolById(id: string): Tool | undefined {

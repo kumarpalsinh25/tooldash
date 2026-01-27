@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { ChevronLeft } from "lucide-react";
+import { Icon } from "@/components/ui/icon";
 
 export default function ToolLayout({
     children,
@@ -14,7 +15,7 @@ export default function ToolLayout({
                     href="/"
                     className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
-                    <ChevronLeft size="sm" />
+                    <Icon icon={ChevronLeft} size="xs" />
                     Back to Tools
                 </Link>
             </nav>

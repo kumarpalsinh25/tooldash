@@ -1,6 +1,7 @@
 import * as React from "react";
 import { tv, type VariantProps } from "@/lib/tv";
 import { Loader2 } from "lucide-react";
+import { Icon } from "./icon";
 
 const buttonStyles = tv({
     base: [
@@ -77,6 +78,10 @@ export function Button({
     ...props
 }: ButtonProps) {
     const isDisabled = loading || props.disabled;
+
+    // Determine icon size based on button size
+    const iconSize = size === "sm" ? "sm" : size === "lg" ? "md" : "md";
+
     return (
         <Component
             className={buttonStyles({ variant, color, size, fullWidth, loading, className })}
@@ -84,9 +89,9 @@ export function Button({
             aria-busy={loading || undefined}
             {...props}
         >
-            {loading ? <Loader2 className="animate-spin" size="sm" /> : leftIcon}
+            {loading ? <Icon icon={Loader2} size={iconSize} className="animate-spin" /> : leftIcon}
             <span>{loading && loadingText ? loadingText : children}</span>
-            {!loading ? rightIcon : null}
+            {rightIcon}
         </Component>
     );
 }

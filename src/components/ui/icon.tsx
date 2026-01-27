@@ -1,5 +1,6 @@
 import * as React from "react";
 import type { LucideIcon } from "lucide-react";
+import { Upload } from "lucide-react";
 import { tv, type VariantProps } from "@/lib/tv";
 
 const iconStyles = tv({
@@ -68,3 +69,5 @@ export function Icon({
         </svg>
     );
 }
+
+export const IconUpload = (props: IconProps) => <Icon icon={Upload} {...props} />;

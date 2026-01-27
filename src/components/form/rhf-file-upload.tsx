@@ -8,7 +8,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-import { FileUpload, type FileUploadProps } from "@/components/ui/file-upload";
+import { FileUpload, type FileUploadProps } from "@/components/file-upload";
 
 type RhfFileUploadProps<TFieldValues extends FieldValues> = FileUploadProps & {
     name: FieldPath<TFieldValues>;

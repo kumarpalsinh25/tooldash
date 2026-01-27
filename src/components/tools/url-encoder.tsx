@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/buttion";
+import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
 import { CopyButton } from "@/components/copy-button";
 

@@ -4,3 +4,4 @@ export { UrlEncoderTool } from "./url-encoder";
 export { HashGeneratorTool } from "./hash-generator";
 export { UuidGeneratorTool } from "./uuid-generator";
 export { LoremIpsumTool } from "./lorem-ipsum";
+export { PdfSplitterTool } from "./pdf-splitter";
