@@ -6,3 +6,4 @@ export { UuidGeneratorTool } from "./uuid-generator";
 export { LoremIpsumTool } from "./lorem-ipsum";
 export { PdfSplitterTool } from "./pdf-splitter";
 export { PdfMergerTool } from "./pdf-merger";
+export { ImageCompressorTool } from "./image-compressor";

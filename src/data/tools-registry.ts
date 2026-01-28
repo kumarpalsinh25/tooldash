@@ -56,6 +56,12 @@ export const tools: Tool[] = [
         description: "Merge multiple PDF files into a single PDF. You can reorder the files before merging.",
         categories: ["conversion"],
     },
+    {
+        id: "image-compressor",
+        name: "Image Compressor",
+        description: "Compress image file size by selecting a compression percentage.",
+        categories: ["conversion"],
+    },
 ];
 
 export function getToolById(id: string): Tool | undefined {
