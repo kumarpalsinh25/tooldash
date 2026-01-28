@@ -9,6 +9,7 @@ import { HashGeneratorTool } from "@/components/tools/hash-generator";
 import { UuidGeneratorTool } from "@/components/tools/uuid-generator";
 import { LoremIpsumTool } from "@/components/tools/lorem-ipsum";
 import { PdfSplitterTool } from "@/components/tools/pdf-splitter";
+import { PdfMergerTool } from "@/components/tools/pdf-merger";
 
 const toolComponents: Record<string, React.ComponentType> = {
     "base64-encoder": Base64Tool,
@@ -18,6 +19,7 @@ const toolComponents: Record<string, React.ComponentType> = {
     "uuid-generator": UuidGeneratorTool,
     "lorem-ipsum": LoremIpsumTool,
     "pdf-splitter": PdfSplitterTool,
+    "pdf-merger": PdfMergerTool,
 };
 
 export function generateStaticParams() {

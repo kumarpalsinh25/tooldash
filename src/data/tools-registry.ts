@@ -50,6 +50,12 @@ export const tools: Tool[] = [
         description: "Split a PDF file into multiple files based on page ranges.",
         categories: ["conversion"],
     },
+    {
+        id: "pdf-merger",
+        name: "PDF Merger",
+        description: "Merge multiple PDF files into a single PDF. You can reorder the files before merging.",
+        categories: ["conversion"],
+    },
 ];
 
 export function getToolById(id: string): Tool | undefined {
