@@ -1,6 +1,6 @@
 import * as React from "react";
 import { tv, type VariantProps } from "@/lib/tv";
-import { ArrowDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 const selectStyles = tv({
     base: [
@@ -32,9 +32,9 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
             <select ref={ref} className={selectStyles({ state, className })} {...props}>
                 {children}
             </select>
-            <ArrowDown
-                size="sm"
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            <ChevronDown
+                size={16}
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground shrink-0"
             />
         </div>
     );

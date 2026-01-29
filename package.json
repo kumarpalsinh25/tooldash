@@ -13,6 +13,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@monaco-editor/react": "^4.7.0",
+    "colord": "^2.9.3",
     "jszip": "^3.10.1",
     "lucide-react": "^0.563.0",
     "monaco-editor": "^0.55.1",

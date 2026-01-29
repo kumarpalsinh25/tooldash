@@ -62,6 +62,12 @@ export const tools: Tool[] = [
         description: "Compress image file size by selecting a compression percentage.",
         categories: ["conversion"],
     },
+    {
+        id: "color-palette-generator",
+        name: "Color Palette Generator",
+        description: "Generate color palettes for Material UI, Tailwind CSS, and other frameworks.",
+        categories: ["formatting"],
+    },
 ];
 
 export function getToolById(id: string): Tool | undefined {

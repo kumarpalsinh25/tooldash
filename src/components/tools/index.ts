@@ -7,3 +7,4 @@ export { LoremIpsumTool } from "./lorem-ipsum";
 export { PdfSplitterTool } from "./pdf-splitter";
 export { PdfMergerTool } from "./pdf-merger";
 export { ImageCompressorTool } from "./image-compressor";
+export { ColorPaletteGeneratorTool } from "./color-palette-generator";

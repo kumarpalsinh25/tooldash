@@ -11,6 +11,7 @@ import { LoremIpsumTool } from "@/components/tools/lorem-ipsum";
 import { PdfSplitterTool } from "@/components/tools/pdf-splitter";
 import { PdfMergerTool } from "@/components/tools/pdf-merger";
 import { ImageCompressorTool } from "@/components/tools/image-compressor";
+import { ColorPaletteGeneratorTool } from "@/components/tools/color-palette-generator";
 
 const toolComponents: Record<string, React.ComponentType> = {
     "base64-encoder": Base64Tool,
@@ -22,6 +23,7 @@ const toolComponents: Record<string, React.ComponentType> = {
     "pdf-splitter": PdfSplitterTool,
     "pdf-merger": PdfMergerTool,
     "image-compressor": ImageCompressorTool,
+    "color-palette-generator": ColorPaletteGeneratorTool,
 };
 
 export function generateStaticParams() {
