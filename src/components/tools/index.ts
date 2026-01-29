@@ -6,6 +6,8 @@ export { UuidGeneratorTool } from "./uuid-generator";
 export { LoremIpsumTool } from "./lorem-ipsum";
 export { PdfSplitterTool } from "./pdf-splitter";
 export { PdfMergerTool } from "./pdf-merger";
+export { PdfLockerTool } from "./pdf-locker";
+export { PdfUnlockerTool } from "./pdf-unlocker";
 export { ImageCompressorTool } from "./image-compressor";
 export { ColorPaletteGeneratorTool } from "./color-palette-generator";
 export { AppIconSplashGeneratorTool } from "./app-icon-splash-generator";

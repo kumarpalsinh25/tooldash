@@ -449,7 +449,7 @@ export function AppIconSplashGeneratorTool() {
             iconImg.src = URL.createObjectURL(iconFile);
         });
 
-        let bgImg: Image | null = null;
+        let bgImg: HTMLImageElement | null = null;
         if (mode === "splash" && useBackgroundImage && backgroundFile) {
             bgImg = new Image();
             await new Promise(resolve => {
@@ -458,7 +458,7 @@ export function AppIconSplashGeneratorTool() {
             });
         }
 
-        let iconBgImg: Image | null = null;
+        let iconBgImg: HTMLImageElement | null = null;
         if (mode === "icon" && addIconBackground === "image" && iconBackgroundFile) {
             iconBgImg = new Image();
             await new Promise(resolve => {

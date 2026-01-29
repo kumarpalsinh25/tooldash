@@ -57,6 +57,18 @@ export const tools: Tool[] = [
         categories: ["conversion"],
     },
     {
+        id: "pdf-locker",
+        name: "PDF Locker",
+        description: "Protect PDF files by adding password protection.",
+        categories: ["security"],
+    },
+    {
+        id: "pdf-unlocker",
+        name: "PDF Unlocker",
+        description: "Remove password protection from PDF files.",
+        categories: ["security"],
+    },
+    {
         id: "image-compressor",
         name: "Image Compressor",
         description: "Compress image file size by selecting a compression percentage.",
