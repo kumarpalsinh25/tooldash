@@ -18,6 +18,7 @@ const toolComponentMap: Record<string, any> = {
     "image-compressor": tools.ImageCompressorTool,
     "color-palette-generator": tools.ColorPaletteGeneratorTool,
     "app-icon-splash-generator": tools.AppIconSplashGeneratorTool,
+    "sqlite-viewer": tools.SqliteViewerTool,
 };
 
 interface ToolPageProps {

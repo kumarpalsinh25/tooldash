@@ -86,6 +86,12 @@ export const tools: Tool[] = [
         description: "Generate app icons and splash screens for Android, iOS, React Native, Expo, Ionic, and other frameworks.",
         categories: ["conversion"],
     },
+    {
+        id: "sqlite-viewer",
+        name: "SQLite Viewer",
+        description: "View, query, filter, and export data from SQLite databases.",
+        categories: ["other"],
+    },
 ];
 
 export function getToolById(id: string): Tool | undefined {

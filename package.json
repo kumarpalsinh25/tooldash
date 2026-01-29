@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -13,12 +13,14 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@monaco-editor/react": "^4.7.0",
+    "@tanstack/react-table": "^8.21.3",
     "colord": "^2.9.3",
     "jszip": "^3.10.1",
     "lucide-react": "^0.563.0",
     "monaco-editor": "^0.55.1",
     "next": "16.1.5",
     "node-qpdf": "^1.0.3",
+    "papaparse": "^5.5.3",
     "pdf-lib": "^1.17.1",
     "pdf2pic": "^3.2.0",
     "pdfjs-dist": "^5.4.530",
@@ -27,6 +29,7 @@
     "react-dom": "19.2.3",
     "react-easy-crop": "^5.5.6",
     "react-hook-form": "^7.71.1",
+    "sql.js": "^1.13.0",
     "tailwind-merge": "^3.4.0",
     "tailwind-variants": "^3.2.2"
   },
