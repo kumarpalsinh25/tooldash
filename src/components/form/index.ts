@@ -4,3 +4,4 @@ export { RhfSelect } from "./rhf-select";
 export { RhfCheckbox } from "./rhf-checkbox";
 export { RhfCodeEditor } from "./rhf-code-editor";
 export { RhfFileUpload } from "./rhf-file-upload";
+export { RhfColorPicker } from "./rhf-color-picker";

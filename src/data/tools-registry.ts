@@ -68,6 +68,12 @@ export const tools: Tool[] = [
         description: "Generate color palettes for Material UI, Tailwind CSS, and other frameworks.",
         categories: ["formatting"],
     },
+    {
+        id: "app-icon-splash-generator",
+        name: "App Icon & Splash Screen Generator",
+        description: "Generate app icons and splash screens for Android, iOS, React Native, Expo, Ionic, and other frameworks.",
+        categories: ["conversion"],
+    },
 ];
 
 export function getToolById(id: string): Tool | undefined {

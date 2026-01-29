@@ -57,21 +57,20 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
         ref
     ) {
         const inputId = React.useId();
+        const [key, setKey] = React.useState(0);
         const inputRef = React.useRef<HTMLInputElement | null>(null);
         const files = value ?? [];
 
         const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
             const next = Array.from(event.target.files ?? []);
             onChange?.(multiple ? next : next.slice(0, 1));
-            event.target.value = "";
+            setKey(prev => prev + 1);
         };
 
         const handleRemove = (index: number) => {
             const next = files.filter((_, i) => i !== index);
             onChange?.(next);
-            if (inputRef.current) {
-                inputRef.current.value = "";
-            }
+            setKey(prev => prev + 1);
         };
 
         React.useImperativeHandle(ref, () => inputRef.current as HTMLInputElement);
@@ -85,6 +84,7 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
                 ) : null}
                 <div className={fileUploadStyles({ size, className })}>
                     <input
+                        key={key}
                         id={inputId}
                         ref={inputRef}
                         type="file"
@@ -95,7 +95,9 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
                     />
                     <label
                         htmlFor={inputId}
-                        className="flex min-h-[inherit] cursor-pointer flex-col items-center justify-center gap-4 text-center"
+                        className={`flex cursor-pointer flex-col items-center justify-center gap-4 text-center ${
+                            files.length === 0 ? "min-h-[inherit]" : "py-4"
+                        }`}
                     >
                         {files.length === 0 ? (
                             <>
@@ -114,43 +116,42 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
                                 </div>
                             </>
                         ) : (
-                            <div className="w-full space-y-3">
-                                <div className="flex items-center justify-center border-b border-dashed pb-2">
-                                    <p className="text-xs text-muted-foreground">
-                                        Click to upload more files
-                                    </p>
-                                </div>
-                                <div className="space-y-2">
-                                    {files.map((file, index) => (
-                                        <div
-                                            key={`${file.name}-${index}`}
-                                            className="flex items-center justify-between rounded-md border border-border bg-muted/40 px-3 py-2 text-left"
-                                        >
-                                            <div className="min-w-0 flex-1 pr-3">
-                                                <p className="truncate text-sm font-medium text-foreground">
-                                                    {file.name}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {formatBytes(file.size)}
-                                                </p>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                className="shrink-0 text-xs font-medium text-red-600 hover:text-red-700"
-                                                onClick={(event) => {
-                                                    event.preventDefault();
-                                                    event.stopPropagation();
-                                                    handleRemove(index);
-                                                }}
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
+                            <div className="flex items-center justify-center">
+                                <p className="text-xs text-muted-foreground">
+                                    Click to upload more files
+                                </p>
                             </div>
                         )}
                     </label>
+                    {files.length > 0 && (
+                        <div className="mt-4 space-y-2">
+                            {files.map((file, index) => (
+                                <div
+                                    key={`${file.name}-${index}`}
+                                    className="flex items-center justify-between rounded-md border border-border bg-muted/40 px-3 py-2 text-left"
+                                >
+                                    <div className="min-w-0 flex-1 pr-3 pointer-events-none">
+                                        <p className="truncate text-sm font-medium text-foreground">
+                                            {file.name}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {formatBytes(file.size)}
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="shrink-0 text-xs font-medium text-red-600 hover:text-red-700 pointer-events-auto"
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            handleRemove(index);
+                                        }}
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
                 {helperText ? (
                     <p className="text-sm text-muted-foreground">{helperText}</p>
