@@ -20,6 +20,7 @@ const toolComponentMap: Record<string, any> = {
     "app-icon-splash-generator": tools.AppIconSplashGeneratorTool,
     "sqlite-viewer": tools.SqliteViewerTool,
     "timezone-scheduler": tools.TimezoneSchedulerTool,
+    "pdf-organizer": tools.PdfOrganizerTool,
 };
 
 interface ToolPageProps {
