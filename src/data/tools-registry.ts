@@ -92,6 +92,12 @@ export const tools: Tool[] = [
         description: "View, query, filter, and export data from SQLite databases.",
         categories: ["other"],
     },
+    {
+        id: "timezone-scheduler",
+        name: "Timezone Scheduler",
+        description: "Find DST-safe overlapping working hours for selected cities or timezones. Show the best common time slots and highlight conflicts, and convert times between selected timezones.",
+        categories: ["conversion"],
+    },
 ];
 
 export function getToolById(id: string): Tool | undefined {

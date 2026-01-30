@@ -19,6 +19,7 @@ const toolComponentMap: Record<string, any> = {
     "color-palette-generator": tools.ColorPaletteGeneratorTool,
     "app-icon-splash-generator": tools.AppIconSplashGeneratorTool,
     "sqlite-viewer": tools.SqliteViewerTool,
+    "timezone-scheduler": tools.TimezoneSchedulerTool,
 };
 
 interface ToolPageProps {

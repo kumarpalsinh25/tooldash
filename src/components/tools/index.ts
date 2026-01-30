@@ -12,3 +12,4 @@ export { ImageCompressorTool } from "./image-compressor";
 export { ColorPaletteGeneratorTool } from "./color-palette-generator";
 export { AppIconSplashGeneratorTool } from "./app-icon-splash-generator";
 export { SqliteViewerTool } from "./sqlite-viewer";
+export { TimezoneSchedulerTool } from "./timezone-scheduler";
