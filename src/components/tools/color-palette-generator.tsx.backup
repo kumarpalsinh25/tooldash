@@ -1,0 +1,842 @@
+"use client";
+
+import { useState } from "react";
+import { Colord, colord } from "colord";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
+import { Typography } from "@/components/ui/typography";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+
+type Framework = "tailwind" | "material-ui" | "bootstrap";
+
+interface PaletteItem {
+    name: string;
+    color: string;
+}
+
+interface ColorPalette {
+    id: string;
+    name: string;
+    baseColor: string;
+    colors: PaletteItem[];
+}
+
+const generateTailwindPalette = (baseColor: Colord): PaletteItem[] => {
+    const hsl = baseColor.toHsl();
+    const shades = [
+        { name: "50", lightness: 97 },
+        { name: "100", lightness: 94 },
+        { name: "200", lightness: 89 },
+        { name: "300", lightness: 83 },
+        { name: "400", lightness: 64 },
+        { name: "500", lightness: 45 },
+        { name: "600", lightness: 32 },
+        { name: "700", lightness: 25 },
+        { name: "800", lightness: 20 },
+        { name: "900", lightness: 15 },
+        { name: "950", lightness: 9 },
+    ];
+    return shades.map(shade => ({
+        name: shade.name,
+        color: colord({ h: hsl.h, s: hsl.s, l: shade.lightness }).toHex(),
+    }));
+};
+
+const generateMaterialPalette = (baseColor: Colord): PaletteItem[] => {
+    const hsl = baseColor.toHsl();
+    const shades = [
+        { name: "50", lightness: 98 },
+        { name: "100", lightness: 96 },
+        { name: "200", lightness: 90 },
+        { name: "300", lightness: 81 },
+        { name: "400", lightness: 70 },
+        { name: "500", lightness: 62 },
+        { name: "600", lightness: 55 },
+        { name: "700", lightness: 48 },
+        { name: "800", lightness: 39 },
+        { name: "900", lightness: 27 },
+        { name: "A100", lightness: 88, saturation: hsl.s + 20 },
+        { name: "A200", lightness: 75, saturation: hsl.s + 20 },
+        { name: "A400", lightness: 57, saturation: hsl.s + 20 },
+        { name: "A700", lightness: 40, saturation: hsl.s + 20 },
+    ];
+    return shades.map(shade => {
+        const s = shade.saturation !== undefined ? shade.saturation : hsl.s;
+        const color = colord({ h: hsl.h, s: Math.min(s, 100), l: shade.lightness });
+        return {
+            name: shade.name,
+            color: color.toHex(),
+        };
+    });
+};
+
+const generateBootstrapPalette = (baseColor: Colord): PaletteItem[] => {
+    const hsl = baseColor.toHsl();
+    const shades = [
+        { name: "100", lightness: 96 },
+        { name: "200", lightness: 90 },
+        { name: "300", lightness: 81 },
+        { name: "400", lightness: 70 },
+        { name: "500", lightness: 62 },
+        { name: "600", lightness: 55 },
+        { name: "700", lightness: 48 },
+        { name: "800", lightness: 39 },
+        { name: "900", lightness: 27 },
+    ];
+    return shades.map(shade => ({
+        name: shade.name,
+        color: colord({ h: hsl.h, s: hsl.s, l: shade.lightness }).toHex(),
+    }));
+};
+
+const generatePalette = (baseHex: string, framework: Framework): PaletteItem[] => {
+    const baseColor = colord(baseHex);
+    switch (framework) {
+        case "tailwind":
+            return generateTailwindPalette(baseColor);
+        case "material-ui":
+            return generateMaterialPalette(baseColor);
+        case "bootstrap":
+            return generateBootstrapPalette(baseColor);
+        default:
+            return [];
+    }
+};
+
+// Color harmony generation functions
+const generateHarmonyPalette = (baseColor: Colord, type: 'complementary' | 'triadic' | 'analogous' | 'split-complementary' | 'tetradic'): Colord[] => {
+    const hsl = baseColor.toHsl();
+    const rotateHue = (degrees: number) => colord({ h: (hsl.h + degrees) % 360, s: hsl.s, l: hsl.l });
+
+    switch(type) {
+        case 'complementary':
+            return [baseColor, rotateHue(180)];
+        case 'triadic':
+            return [baseColor, rotateHue(120), rotateHue(240)];
+        case 'analogous':
+            return [rotateHue(-30), baseColor, rotateHue(30)];
+        case 'split-complementary':
+            return [baseColor, rotateHue(150), rotateHue(210)];
+        case 'tetradic':
+            return [baseColor, rotateHue(90), rotateHue(180), rotateHue(270)];
+        default:
+            return [baseColor];
+    }
+};
+
+// Accessibility and contrast checking
+const getContrastRatio = (color1: string, color2: string): number => {
+    // Manual contrast calculation to avoid colord version issues
+    const getLuminance = (color: string): number => {
+        const rgb = colord(color).toRgb();
+        const [r, g, b] = [rgb.r / 255, rgb.g / 255, rgb.b / 255].map(c =>
+            c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+        );
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+
+    const lum1 = getLuminance(color1);
+    const lum2 = getLuminance(color2);
+    const brightest = Math.max(lum1, lum2);
+    const darkest = Math.min(lum1, lum2);
+    return (brightest + 0.05) / (darkest + 0.05);
+};
+
+const isWCAGCompliant = (ratio: number, level: 'AA' | 'AAA', isLargeText: boolean = false): boolean => {
+    if (level === 'AA') return isLargeText ? ratio >= 3 : ratio >= 4.5;
+    return isLargeText ? ratio >= 4.5 : ratio >= 7;
+};
+
+// Color blindness simulation (simplified)
+const simulateColorBlindness = (color: Colord, type: 'protanopia' | 'deuteranopia' | 'tritanopia'): Colord => {
+    const rgb = color.toRgb();
+    switch(type) {
+        case 'protanopia':
+            // Simplified protanopia simulation
+            return colord({
+                r: rgb.r * 0.567 + rgb.g * 0.433,
+                g: rgb.r * 0.558 + rgb.g * 0.442,
+                b: rgb.b
+            });
+        case 'deuteranopia':
+            // Simplified deuteranopia simulation
+            return colord({
+                r: rgb.r * 0.625 + rgb.g * 0.375,
+                g: rgb.r * 0.7 + rgb.g * 0.3,
+                b: rgb.b
+            });
+        case 'tritanopia':
+            // Simplified tritanopia simulation
+            return colord({
+                r: rgb.r * 0.95 + rgb.b * 0.05,
+                g: rgb.g,
+                b: rgb.r * 0.433 + rgb.b * 0.567
+            });
+        default:
+            return color;
+    }
+};
+
+type Framework = "tailwind" | "material-ui" | "bootstrap";
+
+interface PaletteItem {
+    name: string;
+    color: string;
+}
+
+interface ColorPalette {
+    id: string;
+    name: string;
+    baseColor: string;
+    colors: PaletteItem[];
+}
+
+const generateTailwindPalette = (baseColor: Colord): PaletteItem[] => {
+    const hsl = baseColor.toHsl();
+    const shades = [
+        { name: "50", lightness: 97 },
+        { name: "100", lightness: 94 },
+        { name: "200", lightness: 89 },
+        { name: "300", lightness: 83 },
+        { name: "400", lightness: 64 },
+        { name: "500", lightness: 45 },
+        { name: "600", lightness: 32 },
+        { name: "700", lightness: 25 },
+        { name: "800", lightness: 20 },
+        { name: "900", lightness: 15 },
+        { name: "950", lightness: 9 },
+    ];
+    return shades.map(shade => ({
+        name: shade.name,
+        color: colord({ h: hsl.h, s: hsl.s, l: shade.lightness }).toHex(),
+    }));
+};
+
+const generateMaterialPalette = (baseColor: Colord): PaletteItem[] => {
+    const hsl = baseColor.toHsl();
+    const shades = [
+        { name: "50", lightness: 98 },
+        { name: "100", lightness: 96 },
+        { name: "200", lightness: 90 },
+        { name: "300", lightness: 81 },
+        { name: "400", lightness: 70 },
+        { name: "500", lightness: 62 },
+        { name: "600", lightness: 55 },
+        { name: "700", lightness: 48 },
+        { name: "800", lightness: 39 },
+        { name: "900", lightness: 27 },
+        { name: "A100", lightness: 88, saturation: hsl.s + 20 },
+        { name: "A200", lightness: 75, saturation: hsl.s + 20 },
+        { name: "A400", lightness: 57, saturation: hsl.s + 20 },
+        { name: "A700", lightness: 40, saturation: hsl.s + 20 },
+    ];
+    return shades.map(shade => {
+        const s = shade.saturation !== undefined ? shade.saturation : hsl.s;
+        const color = colord({ h: hsl.h, s: Math.min(s, 100), l: shade.lightness });
+        return {
+            name: shade.name,
+            color: color.toHex(),
+        };
+    });
+};
+
+const generateBootstrapPalette = (baseColor: Colord): PaletteItem[] => {
+    const hsl = baseColor.toHsl();
+    const shades = [
+        { name: "100", lightness: 96 },
+        { name: "200", lightness: 90 },
+        { name: "300", lightness: 81 },
+        { name: "400", lightness: 70 },
+        { name: "500", lightness: 62 },
+        { name: "600", lightness: 55 },
+        { name: "700", lightness: 48 },
+        { name: "800", lightness: 39 },
+        { name: "900", lightness: 27 },
+    ];
+    return shades.map(shade => ({
+        name: shade.name,
+        color: colord({ h: hsl.h, s: hsl.s, l: shade.lightness }).toHex(),
+    }));
+};
+
+export function ColorPaletteGeneratorTool() {
+    if (framework === "tailwind") {
+        if (version === "v4") {
+            // Tailwind v4 uses CSS variables
+            let cssVars = "";
+            palettes.forEach(palette => {
+                cssVars += palette.colors.map(item => `  --color-${palette.name}-${item.name}: ${item.color};`).join("\n") + "\n";
+            });
+            return `@theme {\n${cssVars}}\n\n/* Usage in Tailwind classes: */\n/* bg-primary-50, text-secondary-100, etc. */`;
+        } else {
+            // Tailwind v3 config
+            const colorDefinitions = palettes.map(palette => {
+                const colorMap = palette.colors.map(item => `      ${item.name}: "${item.color}"`).join(",\n");
+                return `    ${palette.name}: {\n${colorMap}\n    }`;
+            }).join(",\n");
+            return `// tailwind.config.js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  theme: {
+    extend: {
+      colors: {\n${colorDefinitions}\n      }
+    }
+  }
+}
+
+// Usage: bg-primary-50, text-secondary-100, etc.`;
+        }
+    } else if (framework === "material-ui") {
+        if (version === "v5") {
+            const paletteDefinitions = palettes.map(palette => {
+                const colorMap = palette.colors.slice(0, 10).map(item => `      ${item.name}: "${item.color}"`).join(",\n");
+                return `    ${palette.name}: {\n${colorMap}\n    }`;
+            }).join(",\n");
+            return `import { createTheme } from '@mui/material/styles';
+
+const theme = createTheme({
+  palette: {\n${paletteDefinitions}\n  }
+});
+
+export default theme;`;
+        } else {
+            // v4 and earlier
+            const paletteDefinitions = palettes.map(palette => {
+                const colorMap = palette.colors.slice(0, 10).map(item => `      ${item.name}: "${item.color}"`).join(",\n");
+                return `    ${palette.name}: {\n${colorMap}\n    }`;
+            }).join(",\n");
+            return `import { createMuiTheme } from '@material-ui/core/styles';
+
+const theme = createMuiTheme({
+  palette: {\n${paletteDefinitions}\n  }
+});
+
+export default theme;`;
+        }
+    } else if (framework === "bootstrap") {
+        if (version === "v5") {
+            // Bootstrap 5 with CSS variables
+            let cssVars = "";
+            palettes.forEach(palette => {
+                cssVars += palette.colors.map(item => `  --bs-${palette.name}-${item.name}: ${item.color};`).join("\n") + "\n";
+            });
+            return `/* Add to your CSS/SCSS file */
+:root {\n${cssVars}}
+
+/* Usage in Bootstrap classes: */
+/* You can extend Bootstrap utilities or use custom CSS */
+/* Example: .bg-primary-500 { background-color: var(--bs-primary-500); } */`;
+        } else {
+            // Bootstrap 4 and earlier
+            let scssVars = "";
+            palettes.forEach(palette => {
+                scssVars += palette.colors.map(item => `$${palette.name}-${item.name}: ${item.color};`).join("\n") + "\n";
+            });
+            return `// Add to your SCSS file
+${scssVars}// Usage example:
+.my-${palettes[0]?.name}-bg {
+  background-color: $${palettes[0]?.name}-500;
+  color: $${palettes[0]?.name}-50;
+}`;
+        }
+    }
+    return "";
+};
+
+const formatCombinedPaletteAsCSS = (palettes: ColorPalette[], framework: Framework): string => {
+    let cssVars = "";
+    palettes.forEach(palette => {
+        if (framework === "tailwind") {
+            cssVars += palette.colors.map(item => `  --color-${palette.name}-${item.name}: ${item.color};`).join("\n") + "\n";
+        } else if (framework === "material-ui") {
+            cssVars += palette.colors.map(item => `  --mui-color-${palette.name}-${item.name}: ${item.color};`).join("\n") + "\n";
+        } else {
+            cssVars += palette.colors.map(item => `  --bs-${palette.name}-${item.name}: ${item.color};`).join("\n") + "\n";
+        }
+    });
+    return `:root {\n${cssVars}}`;
+};
+
+export function ColorPaletteGeneratorTool() {
+    const [framework, setFramework] = useState<Framework>("tailwind");
+    const [version, setVersion] = useState<string>("v3");
+    const [palettes, setPalettes] = useState<ColorPalette[]>([
+        { id: '1', name: 'primary', baseColor: '#3b82f6', colors: generatePalette('#3b82f6', 'tailwind') }
+    ]);
+    const [codeTab, setCodeTab] = useState<'framework' | 'css'>('framework');
+
+    // New state for advanced features
+    const [colorBlindnessMode, setColorBlindnessMode] = useState<'normal' | 'protanopia' | 'deuteranopia' | 'tritanopia'>('normal');
+    const [showAdvancedControls, setShowAdvancedControls] = useState<string | null>(null); // palette id or null
+
+    // Update version when framework changes
+    const handleFrameworkChange = (newFramework: Framework) => {
+        setFramework(newFramework);
+        if (newFramework === "tailwind") setVersion("v3");
+        else if (newFramework === "material-ui") setVersion("v5");
+        else if (newFramework === "bootstrap") setVersion("v5");
+    };
+
+    const addPalette = () => {
+        // Default names in sequence
+        const defaultNames = ['primary', 'secondary', 'success', 'warning', 'error', 'info', 'accent'];
+        const usedNames = palettes.map(p => p.name);
+        const availableNames = defaultNames.filter(name => !usedNames.includes(name));
+
+        // If all default names are used, create a numbered name
+        const nextName = availableNames.length > 0 ? availableNames[0] : `color${palettes.length + 1}`;
+
+        // Default colors for each palette type
+        const defaultColors: Record<string, string> = {
+            primary: '#3b82f6',
+            secondary: '#6b7280',
+            success: '#10b981',
+            warning: '#f59e0b',
+            error: '#ef4444',
+            info: '#06b6d4',
+            accent: '#8b5cf6'
+        };
+
+        const newPalette: ColorPalette = {
+            id: Date.now().toString(),
+            name: nextName,
+            baseColor: defaultColors[nextName] || '#10b981',
+            colors: generatePalette(defaultColors[nextName] || '#10b981', framework)
+        };
+        setPalettes([...palettes, newPalette]);
+    };
+
+    const removePalette = (id: string) => {
+        if (palettes.length > 1) {
+            setPalettes(palettes.filter(p => p.id !== id));
+        }
+    };
+
+    const updatePalette = (id: string, updates: Partial<ColorPalette>) => {
+        setPalettes(palettes.map(p => {
+            if (p.id === id) {
+                const updated = { ...p, ...updates };
+                // Always regenerate colors
+                updated.colors = generatePalette(updated.baseColor, framework);
+                return updated;
+            }
+            return p;
+        }));
+    };
+
+    // New function for harmony generation
+    const generateHarmonyPalettes = (basePalette: ColorPalette, harmonyType: 'complementary' | 'triadic' | 'analogous' | 'split-complementary' | 'tetradic') => {
+        const baseColor = colord(basePalette.baseColor);
+        const harmonyColors = generateHarmonyPalette(baseColor, harmonyType);
+
+        // Create new palettes from harmony colors
+        const harmonyPalettes: ColorPalette[] = harmonyColors.map((color, index) => {
+            const harmonyNames = ['harmony-1', 'harmony-2', 'harmony-3', 'harmony-4'];
+            return {
+                id: `${basePalette.id}-harmony-${index}`,
+                name: harmonyNames[index] || `harmony-${index + 1}`,
+                baseColor: color.toHex(),
+                colors: generatePalette(color.toHex(), framework)
+            };
+        });
+
+        // Add harmony palettes after the base palette
+        const baseIndex = palettes.findIndex(p => p.id === basePalette.id);
+        const newPalettes = [...palettes];
+        newPalettes.splice(baseIndex + 1, 0, ...harmonyPalettes);
+        setPalettes(newPalettes);
+    };
+
+    // Use palettes directly
+    const displayPalettes = palettes;
+
+    const allColorsGenerated = displayPalettes.every(p => p.colors.length > 0);
+    const code = allColorsGenerated ? formatCombinedPaletteAsCode(displayPalettes, framework, version) : "";
+    const cssCode = allColorsGenerated ? formatCombinedPaletteAsCSS(displayPalettes, framework) : "";
+
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Content - Left Side */}
+            <div className="lg:col-span-2 space-y-8">
+                {/* Framework Settings - Compact */}
+                <Card className="border-l-4 border-l-blue-500">
+                    <CardContent className="pt-4">
+                        <div className="flex flex-col sm:flex-row gap-4 items-end">
+                            <div className="flex-1">
+                                <Typography variant="caption" className="text-xs font-medium mb-1">Framework</Typography>
+                                <Select value={framework} onChange={(e) => handleFrameworkChange(e.target.value as Framework)} className="h-10">
+                                    <option value="tailwind">Tailwind CSS</option>
+                                    <option value="material-ui">Material UI</option>
+                                    <option value="bootstrap">Bootstrap</option>
+                                </Select>
+                            </div>
+                            <div className="flex-1">
+                                <Typography variant="caption" className="text-xs font-medium mb-1">Version</Typography>
+                                <Select value={version} onChange={(e) => setVersion(e.target.value)} className="h-10">
+                                    {framework === "tailwind" && (
+                                        <>
+                                            <option value="v3">Tailwind v3</option>
+                                            <option value="v4">Tailwind v4</option>
+                                        </>
+                                    )}
+                                    {framework === "material-ui" && (
+                                        <>
+                                            <option value="v4">Material UI v4</option>
+                                            <option value="v5">Material UI v5</option>
+                                        </>
+                                    )}
+                                    {framework === "bootstrap" && (
+                                        <>
+                                            <option value="v4">Bootstrap v4</option>
+                                            <option value="v5">Bootstrap v5</option>
+                                        </>
+                                    )}
+                                </Select>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Color Blindness Simulation */}
+                <Card className="border-l-4 border-l-purple-500">
+                    <CardContent className="pt-4">
+                        <div className="flex items-center gap-4">
+                            <Typography variant="caption" className="text-xs font-medium">Color Blindness Simulation:</Typography>
+                            <div className="flex gap-2">
+                                {(['normal', 'protanopia', 'deuteranopia', 'tritanopia'] as const).map((mode) => (
+                                    <Button
+                                        key={mode}
+                                        onClick={() => setColorBlindnessMode(mode)}
+                                        variant={colorBlindnessMode === mode ? "default" : "outline"}
+                                        size="sm"
+                                        className="text-xs px-3 py-1 h-7"
+                                    >
+                                        {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                                    </Button>
+                                ))}
+                            </div>
+                            {colorBlindnessMode !== 'normal' && (
+                                <Badge variant="outline" color="warning" className="text-xs">
+                                    Simulating {colorBlindnessMode}
+                                </Badge>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Color Palettes Section */}
+                <div className="space-y-4">
+                    <div>
+                        <Typography variant="h3" className="text-xl font-semibold">Color Palettes</Typography>
+                        <Typography variant="caption" className="text-muted-foreground">Create and customize your color system</Typography>
+                    </div>
+
+                    <div className="grid gap-4">
+                        {displayPalettes.map((palette) => (
+                            <Card key={palette.id} className="relative overflow-hidden">
+                                <CardContent className="p-4">
+                                    {/* Harmony Controls */}
+                                    <div className="flex flex-wrap gap-2 mb-4">
+                                        <Typography variant="caption" className="text-xs font-medium mr-2">Harmonies:</Typography>
+                                        {(['complementary', 'triadic', 'analogous', 'split-complementary', 'tetradic'] as const).map((harmony) => (
+                                            <Button
+                                                key={harmony}
+                                                onClick={() => generateHarmonyPalettes(palette, harmony)}
+                                                variant="outline"
+                                                size="sm"
+                                                className="text-xs px-2 py-1 h-6"
+                                            >
+                                                {harmony.charAt(0).toUpperCase() + harmony.slice(1)}
+                                            </Button>
+                                        ))}
+                                    </div>
+
+                                    <div className="flex items-center gap-4">
+                                        {/* Color Preview Circle */}
+                                        <div className="relative">
+                                            <div
+                                                className="w-16 h-16 rounded-full border-4 border-white shadow-lg cursor-pointer hover:scale-105 transition-transform"
+                                                style={{
+                                                    backgroundColor: colorBlindnessMode !== 'normal'
+                                                        ? simulateColorBlindness(colord(palette.baseColor), colorBlindnessMode).toHex()
+                                                        : palette.baseColor
+                                                }}
+                                                onClick={() => document.getElementById(`color-input-${palette.id}`)?.click()}
+                                            />
+                                            {colorBlindnessMode !== 'normal' && (
+                                                <div className="absolute -top-1 -right-1 bg-purple-500 text-white text-xs px-1 py-0.5 rounded text-xs font-medium">
+                                                    {colorBlindnessMode.slice(0, 3)}
+                                                </div>
+                                            )}
+                                            {palette.colors.length > 0 && (
+                                                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white shadow-sm overflow-hidden">
+                                                    <div className="flex">
+                                                        {palette.colors.slice(0, 4).map((color, i) => {
+                                                            const simulatedColor = colorBlindnessMode !== 'normal'
+                                                                ? simulateColorBlindness(colord(color.color), colorBlindnessMode).toHex()
+                                                                : color.color;
+                                                            return (
+                                                                <div
+                                                                    key={i}
+                                                                    className="w-3 h-6"
+                                                                    style={{ backgroundColor: simulatedColor }}
+                                                                />
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Palette Details */}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <Input
+                                                    type="text"
+                                                    value={palette.name}
+                                                    onChange={(e) => updatePalette(palette.id, { name: e.target.value })}
+                                                    className="text-lg font-semibold border-none p-0 h-auto focus:ring-0 bg-transparent"
+                                                    placeholder="Palette name"
+                                                />
+                                                {palettes.length > 1 && (
+                                                    <Button
+                                                        onClick={() => removePalette(palette.id)}
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                    >
+                                                        ✕
+                                                    </Button>
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        id={`color-input-${palette.id}`}
+                                                        type="color"
+                                                        value={palette.baseColor}
+                                                        onChange={(e) => updatePalette(palette.id, { baseColor: e.target.value })}
+                                                        className="w-10 h-10 rounded-lg border-2 border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
+                                                    />
+                                                    <Input
+                                                        type="text"
+                                                        value={palette.baseColor}
+                                                        onChange={(e) => updatePalette(palette.id, { baseColor: e.target.value })}
+                                                        className="w-28 font-mono text-sm h-10 bg-gray-50 border-gray-200 focus:bg-white"
+                                                        placeholder="#000000"
+                                                    />
+                                                </div>
+                                                <Button
+                                                    onClick={() => setShowAdvancedControls(showAdvancedControls === palette.id ? null : palette.id)}
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="text-xs"
+                                                >
+                                                    {showAdvancedControls === palette.id ? 'Hide' : 'Show'} HSL Controls
+                                                </Button>
+                                                <Typography variant="caption" className="text-muted-foreground">
+                                                    {palette.colors.length > 0 ? `${palette.colors.length} shades generated` : 'Generating shades...'}
+                                                </Typography>
+                                            </div>
+
+                                            {/* Advanced HSL Controls */}
+                                            {showAdvancedControls === palette.id && (
+                                                <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-3">
+                                                    <Typography variant="caption" className="text-sm font-medium">Fine-tune Color</Typography>
+                                                    {(() => {
+                                                        const hsl = colord(palette.baseColor).toHsl();
+                                                        return (
+                                                            <div className="grid grid-cols-3 gap-4">
+                                                                <div>
+                                                                    <label className="block text-xs font-medium mb-1">Hue: {Math.round(hsl.h)}</label>
+                                                                    <input
+                                                                        type="range"
+                                                                        min="0"
+                                                                        max="360"
+                                                                        value={hsl.h}
+                                                                        onChange={(e) => {
+                                                                            const newColor = colord({ h: Number(e.target.value), s: hsl.s, l: hsl.l }).toHex();
+                                                                            updatePalette(palette.id, { baseColor: newColor });
+                                                                        }}
+                                                                        className="w-full"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-xs font-medium mb-1">Saturation: {Math.round(hsl.s)}%</label>
+                                                                    <input
+                                                                        type="range"
+                                                                        min="0"
+                                                                        max="100"
+                                                                        value={hsl.s}
+                                                                        onChange={(e) => {
+                                                                            const newColor = colord({ h: hsl.h, s: Number(e.target.value), l: hsl.l }).toHex();
+                                                                            updatePalette(palette.id, { baseColor: newColor });
+                                                                        }}
+                                                                        className="w-full"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-xs font-medium mb-1">Lightness: {Math.round(hsl.l)}%</label>
+                                                                    <input
+                                                                        type="range"
+                                                                        min="0"
+                                                                        max="100"
+                                                                        value={hsl.l}
+                                                                        onChange={(e) => {
+                                                                            const newColor = colord({ h: hsl.h, s: hsl.s, l: Number(e.target.value) }).toHex();
+                                                                            updatePalette(palette.id, { baseColor: newColor });
+                                                                        }}
+                                                                        className="w-full"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })()}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Generated Colors Preview */}
+                                    {palette.colors.length > 0 && (
+                                        <div className="mt-4 pt-4 border-t border-gray-100">
+                                            <div className="flex gap-1 overflow-x-auto pb-2">
+                                                {palette.colors.map((color, i) => {
+                                                    const simulatedColor = colorBlindnessMode !== 'normal'
+                                                        ? simulateColorBlindness(colord(color.color), colorBlindnessMode).toHex()
+                                                        : color.color;
+
+                                                    // Calculate contrast with white and black text
+                                                    const contrastWithWhite = getContrastRatio(simulatedColor, '#ffffff');
+                                                    const contrastWithBlack = getContrastRatio(simulatedColor, '#000000');
+                                                    const textColor = contrastWithWhite > contrastWithBlack ? '#ffffff' : '#000000';
+                                                    const aaCompliant = isWCAGCompliant(Math.max(contrastWithWhite, contrastWithBlack), 'AA');
+                                                    const aaaCompliant = isWCAGCompliant(Math.max(contrastWithWhite, contrastWithBlack), 'AAA');
+
+                                                    return (
+                                                        <div
+                                                            key={i}
+                                                            className="flex-shrink-0 relative group"
+                                                        >
+                                                            <div
+                                                                className={`w-8 h-8 rounded border shadow-sm cursor-pointer hover:scale-110 transition-transform ${
+                                                                    !aaCompliant ? 'ring-2 ring-red-400' : aaaCompliant ? 'ring-1 ring-green-400' : ''
+                                                                }`}
+                                                                style={{ backgroundColor: simulatedColor }}
+                                                                title={`${palette.name}-${color.name}: ${simulatedColor}${colorBlindnessMode !== 'normal' ? ` (${colorBlindnessMode})` : ''}`}
+                                                                onClick={() => navigator.clipboard.writeText(colorBlindnessMode !== 'normal' ? simulatedColor : color.color)}
+                                                            />
+                                                            {/* Contrast indicator */}
+                                                            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <div
+                                                                    className="text-xs px-1 rounded text-white font-mono"
+                                                                    style={{ backgroundColor: textColor === '#ffffff' ? '#000000' : '#ffffff', color: textColor }}
+                                                                >
+                                                                    {Math.max(contrastWithWhite, contrastWithBlack).toFixed(1)}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                            {/* Legend for accessibility indicators */}
+                                            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                                                <div className="flex items-center gap-1">
+                                                    <div className="w-3 h-3 rounded ring-1 ring-green-400 bg-transparent"></div>
+                                                    <span>AAA compliant</span>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <div className="w-3 h-3 rounded bg-transparent"></div>
+                                                    <span>AA compliant</span>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <div className="w-3 h-3 rounded ring-2 ring-red-400 bg-transparent"></div>
+                                                    <span>Low contrast</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+
+                    {/* Add Palette Button at Bottom */}
+                    <div className="flex justify-center pt-4">
+                        <Button onClick={addPalette} variant="outline" size="sm" className="border-dashed">
+                            <span className="mr-2">+</span> Add Palette
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Export Code - Right Side Sticky */}
+            <div className="lg:col-span-1">
+                <div className="sticky top-6">
+                    {allColorsGenerated && (
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <Typography variant="h3" className="text-lg font-semibold">Export Code</Typography>
+                                    <Typography variant="caption" className="text-muted-foreground text-xs">Ready-to-use configuration</Typography>
+                                </div>
+                                <Button
+                                    onClick={() => navigator.clipboard.writeText(codeTab === 'framework' ? code : cssCode)}
+                                    variant="outline"
+                                    size="sm"
+                                >
+                                    Copy
+                                </Button>
+                            </div>
+
+                            {/* Code Tabs */}
+                            <Card className="shadow-lg">
+                                <CardContent className="p-0">
+                                    <div className="flex border-b border-gray-200">
+                                        <button
+                                            onClick={() => setCodeTab('framework')}
+                                            className={`flex-1 px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
+                                                codeTab === 'framework'
+                                                    ? 'border-blue-500 text-blue-600 bg-blue-50'
+                                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                            }`}
+                                        >
+                                            {framework === "tailwind" ? `Tailwind ${version}` : framework === "material-ui" ? `Material UI ${version}` : `Bootstrap ${version}`}
+                                        </button>
+                                        <button
+                                            onClick={() => setCodeTab('css')}
+                                            className={`flex-1 px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
+                                                codeTab === 'css'
+                                                    ? 'border-blue-500 text-blue-600 bg-blue-50'
+                                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                            }`}
+                                        >
+                                            CSS Variables
+                                        </button>
+                                    </div>
+
+                                    <div className="p-3">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-xs font-medium text-gray-700">
+                                                {codeTab === 'framework' ? 'Configuration' : 'CSS Properties'}
+                                            </span>
+                                            <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded text-xs">
+                                                {codeTab === 'framework' ? code.split('\n').length : cssCode.split('\n').length}
+                                            </span>
+                                        </div>
+                                        <pre className="bg-gray-900 text-gray-100 p-3 rounded-lg overflow-auto max-h-96 text-xs font-mono leading-relaxed">
+                                            {codeTab === 'framework' ? code : cssCode}
+                                        </pre>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
